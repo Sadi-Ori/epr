@@ -1,0 +1,162 @@
+{% extends 'godown/base.html' %}
+{% block title %}Account List{% endblock %}
+{% block content %}
+<h1 class="mb-4">Account Info</h1>
+<div class="row mb-4">
+    <div class="col-md-3">
+        <label for="id_ex_type" class="form-label">Select Ex Type</label>
+        <select class="form-select" id="id_ex_type">
+            <option value="">All</option>
+            {% for value, name in ex_type_choices %}
+                <option value="{{ value }}" {% if request.GET.ex_type == value %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label for="id_status" class="form-label">Select Status</label>
+        <select class="form-select" id="id_status">
+            <option value="">All</option>
+            {% for value, name in status_choices %}
+                <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label for="id_keyword" class="form-label">Search</label>
+        <div class="input-group">
+            <input type="text" class="form-control" id="id_keyword" placeholder="Keyword" value="{{ request.GET.keyword }}">
+            <button class="btn btn-primary" type="button" onclick="applyFilters()">Search</button>
+        </div>
+    </div>
+    <div class="col-md-2 d-flex align-items-end justify-content-end">
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#accountModal">Create New</button>
+    </div>
+</div>
+<div class="modal fade" id="accountModal" tabindex="-1" aria-labelledby="accountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="accountModalLabel">Add New Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="accountForm" method="post" action="{% url 'accounting:account_create' %}" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="invalid-feedback d-block">{% for error in field.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                        </div>
+                    {% endfor %}
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-end">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle text-danger"></i> Close</button>
+                <button type="button" class="btn btn-success" onclick="submitAccountForm()"><i class="bi bi-check-circle text-white"></i> Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>SL</th>
+                <th>Acc ID</th>
+                <th>Account Name</th>
+                <th>Acc Type</th>
+                <th>Sub Type</th>
+                <th>Ex Type</th>
+                <th>Address</th>
+                <th>Contact</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in page_obj %}
+            <tr>
+                <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                <td>{{ account.account_id }}</td>
+                <td>{{ account.account_title }}</td>
+                <td>{{ account.acc_type }}</td>
+                <td>{{ account.sub_type }}</td>
+                <td>{{ account.ex_type }}</td>
+                <td>{{ account.area }}, {{ account.district }}</td>
+                <td>{{ account.contact_number }}</td>
+                <td>{{ account.account_status }}</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#accountModal"
+                        data-pk="{{ account.pk }}" data-ex_type="{{ account.ex_type }}" data-account_id="{{ account.account_id }}"
+                        data-account_title="{{ account.account_title }}" data-contact_number="{{ account.contact_number }}"
+                        data-district="{{ account.district }}" data-area="{{ account.area }}" data-account_status="{{ account.account_status }}">Edit</button>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="deleteAccount({{ account.pk }})">Delete</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="10" class="text-center">No accounts found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'godown/pagination.html' %}
+<script>
+    function applyFilters() {
+        const exType = document.getElementById('id_ex_type').value;
+        const status = document.getElementById('id_status').value;
+        const keyword = document.getElementById('id_keyword').value;
+        let url = new URL(window.location.href.split('?')[0]);
+        if (exType) url.searchParams.append('ex_type', exType);
+        if (status) url.searchParams.append('status', status);
+        if (keyword) url.searchParams.append('keyword', keyword);
+        window.location.href = url.toString();
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('accountModal');
+        modal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const pk = button.getAttribute('data-pk');
+            const modalTitle = modal.querySelector('.modal-title');
+            const form = document.getElementById('accountForm');
+            if (pk) {
+                modalTitle.textContent = 'Edit Account';
+                form.action = `/accounting/accounts/${pk}/edit/`;
+                modal.querySelector('[name="ex_type"]').value = button.getAttribute('data-ex_type');
+                modal.querySelector('[name="account_id"]').value = button.getAttribute('data-account_id');
+                modal.querySelector('[name="account_title"]').value = button.getAttribute('data-account_title');
+                modal.querySelector('[name="contact_number"]').value = button.getAttribute('data-contact_number');
+                modal.querySelector('[name="district"]').value = button.getAttribute('data-district');
+                modal.querySelector('[name="area"]').value = button.getAttribute('data-area');
+                modal.querySelector('[name="account_status"]').value = button.getAttribute('data-account_status');
+            } else {
+                modalTitle.textContent = 'Add New Account';
+                form.action = "{% url 'accounting:account_create' %}";
+                form.reset();
+            }
+        });
+    });
+    function submitAccountForm() {
+        const form = document.getElementById('accountForm');
+        const formData = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value}
+        })
+        .then(response => response.json())
+        .then(data => { if (data.success) { location.reload(); } else { console.error('Form submission failed:', data.errors); } });
+    }
+    function deleteAccount(pk) {
+        if (confirm('Are you sure you want to delete this account?')) {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            fetch(`/accounting/accounts/${pk}/delete/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken }
+            })
+            .then(response => response.json())
+            .then(data => { if (data.success) { location.reload(); } else { console.error('Delete failed:', data.errors); } });
+        }
+    }
+</script>
+{% endblock %}

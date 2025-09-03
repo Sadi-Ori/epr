@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Journal Invoice #{{ journal.id }}</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; font-size: 14px; margin: 0; padding: 20px; }
+        .invoice-container { max-width: 800px; margin: 0 auto; border: 1px solid #ccc; padding: 30px; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .header h1 { font-size: 24px; margin: 0; }
+        .invoice-details { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .invoice-details .left { text-align: left; }
+        .invoice-details .right { text-align: right; }
+        .invoice-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .invoice-table th, .invoice-table td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        .invoice-table th { background-color: #f2f2f2; font-weight: bold; }
+        .invoice-table tfoot td { font-weight: bold; }
+        .signatures { display: flex; justify-content: space-between; margin-top: 50px; }
+        .signature-box { width: 22%; text-align: center; border-top: 1px solid #000; padding-top: 5px; }
+        .footer { margin-top: 50px; text-align: right; font-size: 12px; }
+        @media print { .invoice-container { border: none; } }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="header">
+            <h1>Fattah Info Tech</h1>
+        </div>
+        <div class="invoice-details">
+            <div class="left">
+                <h2>Multiple Journal Voucher</h2>
+                <p><strong>Journal No:</strong> {{ journal.id }}</p>
+                <p><strong>Voucher No:</strong> {{ journal.voucher_number }}</p>
+            </div>
+            <div class="right">
+                <p><strong>Issued Date:</strong> {{ journal.created_at|date:"d/m/Y" }}</p>
+                <p><strong>Description:</strong> {{ journal.description }}</p>
+            </div>
+        </div>
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>Trn ID</th>
+                    <th>Account Debit</th>
+                    <th>Account Credit</th>
+                    <th>LC Number</th>
+                    <th>Note</th>
+                    <th>Debit Amount</th>
+                    <th>Credit Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                <tr>
+                    <td>{{ entry.trn_id }}</td>
+                    <td>{{ entry.account_debit }}</td>
+                    <td>{{ entry.account_credit }}</td>
+                    <td>{{ entry.lc_number }}</td>
+                    <td>{{ entry.note }}</td>
+                    <td>{{ entry.debit_amount }}</td>
+                    <td>{{ entry.credit_amount }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="5"><strong>TOTAL</strong></td>
+                    <td>{{ total_debit }}</td>
+                    <td>{{ total_credit }}</td>
+                </tr>
+            </tfoot>
+        </table>
+        <div class="signatures">
+            <div class="signature-box">
+                <p>Prepared By</p>
+            </div>
+            <div class="signature-box">
+                <p>Checked By</p>
+            </div>
+            <div class="signature-box">
+                <p>Audited By</p>
+            </div>
+            <div class="signature-box">
+                <p>Approve By</p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>Printed on: {{ "now"|date:"d/m/Y H:i" }}</p>
+        </div>
+    </div>
+</body>
+</html>

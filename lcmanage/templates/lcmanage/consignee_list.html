@@ -1,0 +1,141 @@
+{% extends 'godown/base.html' %}
+
+{% block title %}Consignee Manage{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Consignee Manage</h1>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#consigneeModal">
+        Create New
+    </button>
+</div>
+
+<div class="modal fade" id="consigneeModal" tabindex="-1" aria-labelledby="consigneeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="consigneeModalLabel">Create New Consignee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="consigneeForm" method="post" action="{% url 'lcmanage:consignee_create' %}" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in field.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-end">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle text-danger"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-success" onclick="submitConsigneeForm()">
+                    <i class="bi bi-check-circle text-white"></i> Submit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>SL</th>
+                <th>Type</th>
+                <th>Consignee Name</th>
+                <th>Owner Name</th>
+                <th>Contact</th>
+                <th>Reg. Number</th>
+                <th>Address</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for consignee in page_obj %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ consignee.get_consignee_type_display }}</td>
+                <td>{{ consignee.consignee_name }}</td>
+                <td>{{ consignee.owner_name }}</td>
+                <td>{{ consignee.contact }}</td>
+                <td>{{ consignee.reg_number }}</td>
+                <td>{{ consignee.address }}</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#consigneeModal" 
+                        data-pk="{{ consignee.pk }}" 
+                        data-consignee_type="{{ consignee.consignee_type }}" 
+                        data-consignee_name="{{ consignee.consignee_name }}" 
+                        data-owner_name="{{ consignee.owner_name }}" 
+                        data-contact="{{ consignee.contact }}" 
+                        data-reg_number="{{ consignee.reg_number }}" 
+                        data-address="{{ consignee.address }}">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">No consignees found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% include 'godown/pagination.html' %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('consigneeModal');
+        modal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const pk = button.getAttribute('data-pk');
+            const modalTitle = modal.querySelector('.modal-title');
+            const form = document.getElementById('consigneeForm');
+            if (pk) {
+                modalTitle.textContent = 'Edit Consignee';
+                form.action = `/lc-manage/consignees/${pk}/edit/`;
+                modal.querySelector('[name="consignee_type"]').value = button.getAttribute('data-consignee_type');
+                modal.querySelector('[name="consignee_name"]').value = button.getAttribute('data-consignee_name');
+                modal.querySelector('[name="owner_name"]').value = button.getAttribute('data-owner_name');
+                modal.querySelector('[name="contact"]').value = button.getAttribute('data-contact');
+                modal.querySelector('[name="reg_number"]').value = button.getAttribute('data-reg_number');
+                modal.querySelector('[name="address"]').value = button.getAttribute('data-address');
+            } else {
+                modalTitle.textContent = 'Create New Consignee';
+                form.action = "{% url 'lcmanage:consignee_create' %}";
+                form.reset();
+            }
+        });
+    });
+
+    function submitConsigneeForm() {
+        const form = document.getElementById('consigneeForm');
+        const formData = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value}
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                console.error('Form submission failed:', data.errors);
+            }
+        });
+    }
+</script>
+{% endblock %}

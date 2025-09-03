@@ -1,0 +1,126 @@
+{% extends 'godown/base.html' %}
+{% block title %}LC List{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">LC List</h1>
+</div>
+<div class="card mb-4">
+    <div class="card-header">Create New LC</div>
+    <div class="card-body">
+        <form method="post" action="{% url 'lcmanage:lc_list' %}" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="create_lc" value="true">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                {% for field in lc_form %}
+                <div class="col">
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<div class="invalid-feedback d-block">{% for error in field.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="d-flex justify-content-end mt-4"><button type="submit" class="btn btn-success">Create new LC</button></div>
+        </form>
+    </div>
+</div>
+<hr>
+<h2 class="mb-3">LC List</h2>
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>SL</th>
+                <th>LC Number</th>
+                <th>MV</th>
+                <th>Allot LC</th>
+                <th>Product</th>
+                <th>Consignee</th>
+                <th>Bank Info</th>
+                <th>Entry Date</th>
+                <th>LC Date</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lc in page_obj %}
+            <tr>
+                <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                <td>{{ lc.lc_number }}</td>
+                <td>{{ lc.mv }}</td>
+                <td>{{ lc.allot_lc }}</td>
+                <td>{{ lc.product }}</td>
+                <td>{{ lc.consignee }}</td>
+                <td>{{ lc.bank_info }}</td>
+                <td>{{ lc.entry_date }}</td>
+                <td>{{ lc.lc_date }}</td>
+                <td>{{ lc.quantity }}</td>
+                <td>{{ lc.get_status_display }}</td>
+                <td>
+                    <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#lcUpdateModal" data-pk="{{ lc.pk }}" data-lc_open_date="{{ lc.lc_open_date|date:'Y-m-d' }}" data-allot_lc="{{ lc.allot_lc }}" data-quantity="{{ lc.quantity }}" data-lc_bank_branch="{{ lc.lc_bank_branch }}" data-sale_status="{{ lc.sale_status }}">Update</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="12" class="text-center">No LCs found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'godown/pagination.html' %}
+<div class="modal fade" id="lcUpdateModal" tabindex="-1" aria-labelledby="lcUpdateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="lcUpdateModalLabel">Update LC</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="lcUpdateForm" method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    {% for field in lc_update_form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="invalid-feedback d-block">{% for error in field.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                        </div>
+                    {% endfor %}
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-end">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle text-danger"></i> Cancel</button>
+                <button type="button" class="btn btn-success" onclick="submitLcUpdateForm()"><i class="bi bi-check-circle text-white"></i> Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const updateModal = document.getElementById('lcUpdateModal');
+        updateModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const pk = button.getAttribute('data-pk');
+            const form = document.getElementById('lcUpdateForm');
+            form.action = `/lc-manage/lcs/update/${pk}/`;
+            updateModal.querySelector('[name="lc_open_date"]').value = button.getAttribute('data-lc_open_date');
+            updateModal.querySelector('[name="allot_lc"]').value = button.getAttribute('data-allot_lc');
+            updateModal.querySelector('[name="quantity"]').value = button.getAttribute('data-quantity');
+            updateModal.querySelector('[name="lc_bank_branch"]').value = button.getAttribute('data-lc_bank_branch');
+            updateModal.querySelector('[name="sale_status"]').value = button.getAttribute('data-sale_status');
+        });
+    });
+    function submitLcUpdateForm() {
+        const form = document.getElementById('lcUpdateForm');
+        const formData = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {'X-CSRFToken': document.querySelector('#lcUpdateModal [name=csrfmiddlewaretoken]').value}
+        })
+        .then(response => response.json())
+        .then(data => { if (data.success) { location.reload(); } else { console.error('LC Update failed:', data.errors); } });
+    }
+</script>
+{% endblock %}

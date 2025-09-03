@@ -1,0 +1,49 @@
+{% extends 'godown/base.html' %}
+
+{% block title %}Godown List{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Godown List</h1>
+    <a href="{% url 'godown_create' %}" class="btn btn-primary">Create New</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>SL</th>
+                <th>Godown Name</th>
+                <th>Godown Ghat</th>
+                <th>Address</th>
+                <th>Contact Number</th>
+                <th>Type</th>
+                <th>Sales Hub</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for godown in page_obj %}
+            <tr>
+                <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                <td>{{ godown.godown_name }}</td>
+                <td>{{ godown.godown_ghat }}</td>
+                <td>{{ godown.address }}</td>
+                <td>{{ godown.contact_number }}</td>
+                <td>{{ godown.type }}</td>
+                <td>{{ godown.sales_hub }}</td>
+                <td>
+                    <a href="{% url 'godown_edit' godown.pk %}" class="btn btn-sm btn-info">Edit</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">No godowns found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% include 'godown/pagination.html' %}
+{% endblock %}

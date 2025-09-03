@@ -1,0 +1,38 @@
+{% extends 'godown/base.html' %}
+
+{% block title %}Cost Center List{% endblock %}
+
+{% block content %}
+<h1>Cost Center List</h1>
+
+<a href="{% url 'cost_center_create' %}" class="btn btn-primary mb-3">Create New Cost Center</a>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>SL</th>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for cost_center in page_obj %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>{{ cost_center.name }}</td>
+      <td>{{ cost_center.description }}</td>
+      <td>
+        <a href="{% url 'cost_center_edit' cost_center.pk %}" class="btn btn-sm btn-info">Edit</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="4">No cost centers found.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% include 'godown/pagination.html' %}
+{% endblock %}

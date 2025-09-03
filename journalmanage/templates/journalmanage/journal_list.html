@@ -1,0 +1,84 @@
+{% extends 'godown/base.html' %}
+{% block title %}Journal List{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Journal List</h1>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#journalModal">
+        Create New
+    </button>
+</div>
+<div class="modal fade" id="journalModal" tabindex="-1" aria-labelledby="journalModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="journalModalLabel">Add New Journal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="journalForm" method="post" action="{% url 'journalmanage:journal_list' %}" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="invalid-feedback d-block">{% for error in field.errors %}{{ error }}{% endfor %}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-end">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle text-danger"></i> Close</button>
+                <button type="button" class="btn btn-success" onclick="submitJournalForm()"><i class="bi bi-check-circle text-white"></i> Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for journal in page_obj %}
+            <tr>
+                <td>{{ journal.id }}</td>
+                <td>{{ journal.description }}</td>
+                <td>{{ journal.amount }}</td>
+                <td>{{ journal.status }}</td>
+                <td><a href="{% url 'journalmanage:journal_print_invoice' journal.pk %}" class="btn btn-sm btn-info">Print</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center">No journals found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'godown/pagination.html' %}
+<script>
+    function submitJournalForm() {
+        const form = document.getElementById('journalForm');
+        const formData = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value}
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = `/journal-manage/invoice/${data.journal_id}/`;
+            } else {
+                console.error('Form submission failed:', data.errors);
+            }
+        });
+    }
+</script>
+{% endblock %}

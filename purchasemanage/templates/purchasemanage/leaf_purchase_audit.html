@@ -1,0 +1,34 @@
+{% extends 'godown/base.html' %}
+{% block title %}Leaf Purchase Audit{% endblock %}
+{% block content %}
+<h1 class="mb-4">Leaf Purchase Audit</h1>
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Purchase ID</th>
+                <th>Date</th>
+                <th>Supplier</th>
+                <th>Address</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in page_obj %}
+            <tr>
+                <td>{{ purchase.purchase_id }}</td>
+                <td>{{ purchase.date }}</td>
+                <td>{{ purchase.supplier.name }}</td>
+                <td>{{ purchase.address }}</td>
+                <td>{{ purchase.status }}</td>
+                <td><button class="btn btn-sm btn-warning">Audit</button></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center">No pending purchases found to audit.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'godown/pagination.html' %}
+{% endblock %}
