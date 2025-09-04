@@ -88,7 +88,7 @@ class Account(models.Model):
     district = models.CharField(max_length=100, blank=True, null=True)
     area = models.CharField(max_length=255, blank=True, null=True)
     account_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', verbose_name="Account Status")
-    
+    entry_date = models.DateField(verbose_name="Entry Date", null=True, blank=True)
     # Placeholder for Acc Type and Sub Type, as these were not detailed
     acc_type = models.CharField(max_length=100, blank=True, null=True, default='General')
     sub_type = models.CharField(max_length=100, blank=True, null=True, default='N/A')

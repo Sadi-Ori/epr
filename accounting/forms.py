@@ -26,7 +26,7 @@ class AccountForm(forms.ModelForm):
 
     class Meta:
         model = Account
-        fields = ['ex_type', 'account_id', 'account_title', 'contact_number', 'district', 'area', 'account_status']
+        fields = ['ex_type', 'account_id', 'account_title', 'contact_number', 'district', 'area', 'account_status', 'entry_date']
         widgets = {
             'ex_type': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Select Ex Type'}),
             'account_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account ID'}),
@@ -34,4 +34,5 @@ class AccountForm(forms.ModelForm):
             'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contact Number'}),
             'area': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Select Area'}),
             'account_status': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Select Status'}),
+            'entry_date': forms.DateInput(attrs={'class': 'form-control', 'placeholder': 'Select Entry Date', 'type': 'date'}),
         }
